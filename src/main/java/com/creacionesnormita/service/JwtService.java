@@ -14,8 +14,8 @@ import java.util.Date;
 import java.util.UUID;
 
 /**
- * Equivale a JwtService.cs del proyecto .NET
- * Genera y valida tokens JWT.
+ * Servicio encargado de la generación y validación de tokens JWT (JSON Web Tokens).
+ * Utiliza la librería JJWT para firmar y verificar tokens.
  */
 @Service
 public class JwtService {
@@ -37,39 +37,35 @@ public class JwtService {
     }
 
     /**
-     * Equivale a: _jwtService.GenerateToken(user, roles, out DateTime? expires)
-     * En .NET los Administradores obtenían 1 año, los demás según configuración.
+     * Genera un token JWT para un usuario específico.
+     * Incluye claims personalizados como rol y nombre.
+     * Define una expiración diferente para administradores (1 año) y usuarios normales.
+     *
+     * @param user El usuario para el cual se genera el token.
+     * @return El token JWT firmado como String.
      */
     public String generateToken(ApplicationUser user) {
         long expirationMs = "Administrador".equalsIgnoreCase(user.getRole())
-                ? 365L * 24 * 60 * 60 * 1000   // 1 año (igual que en .NET)
+                ? 365L * 24 * 60 * 60 * 1000   
                 : (long) expirationMinutes * 60 * 1000;
 
         return Jwts.builder()
-                .subject(user.getUsername())                          // ClaimTypes.Name
-                .issuer(issuer)                                       // ValidIssuer
-                .audience().add(audience).and()                       // ValidAudience
-                .claim("role", user.getRole())                        // ClaimTypes.Role
-                .claim("dui", user.getDui())                          // claim "Dui"
+                .subject(user.getUsername())
+                .issuer(issuer)
+                .audience().add(audience).and()
+                .claim("role", user.getRole())
                 .claim("nombre", user.getNombre())
-                .id(UUID.randomUUID().toString())                     // JwtRegisteredClaimNames.Jti
+                .id(UUID.randomUUID().toString())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(getSigningKey())
                 .compact();
     }
 
-    /**
-     * Obtiene el tiempo de expiración del token (para la cookie).
-     * Equivale al parámetro out DateTime? expires del .NET.
-     */
     public Instant getExpiration(String token) {
         return parseClaims(token).getExpiration().toInstant();
     }
 
-    /**
-     * Equivale a la validación interna que hacía JwtBearer middleware en .NET
-     */
     public boolean isTokenValid(String token, UserDetails userDetails) {
         try {
             final String username = extractUsername(token);

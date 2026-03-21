@@ -19,10 +19,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 /**
- * Equivale a LoginController.cs + RegisterController.cs del proyecto .NET
- *
- * .NET:  [Route("api/[controller]")] → /api/Login, /api/Register
- * Spring: [RequestMapping("/api/auth")] → /api/auth/login, /api/auth/register
+ * Controlador para manejar la autenticación de usuarios.
+ * Proporciona endpoints para iniciar sesión, registrarse y cerrar sesión.
  */
 @RestController
 @RequestMapping("/api/auth")
@@ -33,44 +31,48 @@ public class AuthController {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
 
-    // ─────────────────────────────────────────────────────────────────────────────
-    // POST /api/auth/login
-    // Equivale a: LoginController.Login([FromBody] LoginRequest request)
-    // ─────────────────────────────────────────────────────────────────────────────
+    /**
+     * Inicia sesión de un usuario.
+     * Verifica las credenciales, genera un token JWT y lo devuelve en una cookie segura.
+     *
+     * @param request  Objeto con nombre de usuario y contraseña.
+     * @param response Objeto de respuesta HTTP para establecer la cookie.
+     * @return Respuesta con el token y detalles del usuario si el login es exitoso.
+     */
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request,
                                    HttpServletResponse response) {
         try {
-            // Equivale a: _userManager.FindByNameAsync(request.UserName)
+            // Cargar usuario desde la base de datos
             ApplicationUser user = (ApplicationUser)
                     userService.loadUserByUsername(request.username());
 
-            // Equivale a: _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password)
+            // Verificar si la contraseña proporcionada coincide con la almacenada (hasheada)
             if (!passwordEncoder.matches(request.password(), user.getPassword())) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body("Usuario o contraseña incorrecta");
             }
 
-            // Equivale a: _jwtService.GenerateToken(user, roles, out DateTime? expires)
+            // Generar token JWT para el usuario autenticado
             String token = jwtService.generateToken(user);
             var expiration = jwtService.getExpiration(token);
 
-            // Equivale a: Response.Cookies.Append("AuthToken", jwtString, cookieOptions)
-            //   HttpOnly = true
-            //   Secure   = true
-            //   SameSite = Lax
+            // Crear cookie segura para almacenar el token
+            // HttpOnly: true -> Evita acceso desde JavaScript (protección XSS)
+            // Secure: false -> Permitir HTTP en desarrollo (cambiar a true en producción con HTTPS)
             Cookie cookie = new Cookie("AuthToken", token);
             cookie.setHttpOnly(true);
-            cookie.setSecure(false); // Cambiar a true en producción con HTTPS
+            cookie.setSecure(false); 
             cookie.setPath("/");
+            // Duración de la cookie: 1 año para admins, 1 hora para usuarios normales
             cookie.setMaxAge(
                 "Administrador".equalsIgnoreCase(user.getRole())
-                    ? 365 * 24 * 60 * 60   // 1 año para admins
-                    : 60 * 60              // 1 hora para usuarios normales
+                    ? 365 * 24 * 60 * 60   
+                    : 60 * 60              
             );
             response.addCookie(cookie);
 
-            // Equivale a: return Ok(new LoginResponse { Token = ..., Expiration = ... })
+            // Devolver respuesta exitosa con el token y datos del usuario
             return ResponseEntity.ok(new LoginResponse(
                     token,
                     user.getUsername(),
@@ -79,20 +81,22 @@ public class AuthController {
             ));
 
         } catch (UsernameNotFoundException e) {
-            // Equivale a: return Unauthorized("Usuario o contraseña incorrecta")
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("Usuario o contraseña incorrecta");
         } catch (Exception e) {
-            // Equivale a: return StatusCode(500, "Ocurrió un error inesperado...")
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Ocurrió un error inesperado. Intente nuevamente.");
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────────
-    // POST /api/auth/logout
-    // Equivale a: LoginController.Logout()
-    // ─────────────────────────────────────────────────────────────────────────────
+    /**
+     * Cierra la sesión del usuario.
+     * Invalida la cookie de autenticación estableciendo su tiempo de vida a 0.
+     *
+     * @param request  Petición HTTP para leer las cookies actuales.
+     * @param response Respuesta HTTP para enviar la cookie de borrado.
+     * @return Mensaje de éxito o error.
+     */
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest request,
                                     HttpServletResponse response) {
@@ -100,9 +104,9 @@ public class AuthController {
         if (cookies != null) {
             for (Cookie cookie : cookies) {
                 if ("AuthToken".equals(cookie.getName())) {
-                    // Equivale a: Expires = DateTime.UtcNow.AddDays(-1)
+                    // Crear una cookie con el mismo nombre pero expiración inmediata para borrarla
                     Cookie deleteCookie = new Cookie("AuthToken", "");
-                    deleteCookie.setMaxAge(0);   // Expira inmediatamente
+                    deleteCookie.setMaxAge(0);
                     deleteCookie.setPath("/");
                     deleteCookie.setHttpOnly(true);
                     response.addCookie(deleteCookie);
@@ -113,21 +117,21 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("message", "No fue posible desloguearse"));
     }
 
-    // ─────────────────────────────────────────────────────────────────────────────
-    // POST /api/auth/register
-    // Equivale a: RegisterController.Register([FromBody] RegisterRequest request)
-    // ─────────────────────────────────────────────────────────────────────────────
+    /**
+     * Registra un nuevo usuario en el sistema.
+     *
+     * @param request Objeto con los datos del nuevo usuario.
+     * @return Mensaje de éxito o error si los datos no son válidos.
+     */
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         try {
-            // Equivale a: await _registrationService.RegisterUserAsync(request, User)
             ApplicationUser user = userService.registerUser(request);
             return ResponseEntity.ok(Map.of(
                     "message", "Usuario registrado exitosamente",
                     "username", user.getUsername()
             ));
         } catch (RuntimeException e) {
-            // Equivale a: return BadRequest(result)
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
