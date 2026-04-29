@@ -73,13 +73,13 @@ Este método equivale al `Where(p => p.Activo)` + `.Skip().Take()` de Entity Fra
 ### `ProductosController.java`
 Controlador REST que expone los endpoints de la API bajo `/api/productos`.
 
-| Método | Endpoint | Acceso | Descripción |
-|---|---|---|---|
-| `GET` | `/api/productos` | Público | Lista productos activos con paginación |
-| `GET` | `/api/productos/{id}` | Público | Obtiene un producto por ID |
-| `POST` | `/api/productos` | Admin | Crea un nuevo producto |
-| `PUT` | `/api/productos/{id}` | Admin | Actualiza un producto existente |
-| `DELETE` | `/api/productos/{id}` | Admin | Elimina un producto |
+| Método   | Endpoint              | Acceso  | Descripción                            |
+|----------|-----------------------|---------|----------------------------------------|
+| `GET`    | `/api/productos`      | Público | Lista productos activos con paginación |
+| `GET`    | `/api/productos/{id}` | Público | Obtiene un producto por ID             |
+| `POST`   | `/api/productos`      | Admin   | Crea un nuevo producto                 |
+| `PUT`    | `/api/productos/{id}` | Admin   | Actualiza un producto existente        |
+| `DELETE` | `/api/productos/{id}` | Admin   | Elimina un producto                    |
 
 **Detalles de implementación:**
 - `@PreAuthorize("hasRole('Administrador')")` reemplaza a `[Authorize(Roles = "Administrador")]` de ASP.NET.
@@ -147,21 +147,21 @@ public class SecurityConfig { ... }
 
 ## 🔄 Tabla de equivalencias C# → Java
 
-| C# / .NET | Java / Spring |
-|---|---|
+| C# / .NET                                    | Java / Spring                       |
+|----------------------------------------------|-------------------------------------|
 | `[Key]` + `DatabaseGeneratedOption.Identity` | `@Id` + `@GeneratedValue(IDENTITY)` |
-| `[Required]` | `@NotBlank` / `@NotNull` |
-| `[StringLength(N)]` | `@Size(max = N)` |
-| `[Range(min, max)]` | `@DecimalMin` + `@DecimalMax` |
-| `[Column(TypeName = "jsonb")]` | `@JdbcTypeCode(SqlTypes.JSON)` |
-| `decimal` | `BigDecimal` |
-| `DateTime` | `LocalDateTime` |
-| `DateTime.UtcNow` | `LocalDateTime.now()` |
-| `IActionResult` | `ResponseEntity<Void>` |
-| `[Authorize(Roles = "X")]` | `@PreAuthorize("hasRole('X')")` |
-| `AsNoTracking()` | No necesario en JPA |
-| `.Skip().Take()` | `Pageable` con `PageRequest.of()` |
-| `CreatedAtAction(...)` | `ResponseEntity.created(URI)` |
+| `[Required]`                                 | `@NotBlank` / `@NotNull`            |
+| `[StringLength(N)]`                          | `@Size(max = N)`                    |
+| `[Range(min, max)]`                          | `@DecimalMin` + `@DecimalMax`       |
+| `[Column(TypeName = "jsonb")]`               | `@JdbcTypeCode(SqlTypes.JSON)`      |
+| `decimal`                                    | `BigDecimal`                        |
+| `DateTime`                                   | `LocalDateTime`                     |
+| `DateTime.UtcNow`                            | `LocalDateTime.now()`               |
+| `IActionResult`                              | `ResponseEntity<Void>`              |
+| `[Authorize(Roles = "X")]`                   | `@PreAuthorize("hasRole('X')")`     |
+| `AsNoTracking()`                             | No necesario en JPA                 |
+| `.Skip().Take()`                             | `Pageable` con `PageRequest.of()`   |
+| `CreatedAtAction(...)`                       | `ResponseEntity.created(URI)`       |
 
 
 ____

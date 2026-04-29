@@ -45,7 +45,7 @@ public class AuthController {
         try {
             // Cargar usuario desde la base de datos
             ApplicationUser user = (ApplicationUser)
-                    userService.loadUserByUsername(request.username());
+                    userService.loadUserByUsername(request.email());
 
             // Verificar si la contraseña proporcionada coincide con la almacenada (hasheada)
             if (!passwordEncoder.matches(request.password(), user.getPassword())) {

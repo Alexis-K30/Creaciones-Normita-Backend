@@ -26,15 +26,15 @@ public class UserService implements UserDetailsService {
      * Carga un usuario por su nombre de usuario.
      * Este método es llamado automáticamente por Spring Security cuando necesita verificar credenciales.
      *
-     * @param username El nombre de usuario a buscar.
+     * @param email El email a buscar.
      * @return UserDetails objeto que representa al usuario autenticado.
      * @throws UsernameNotFoundException Si el usuario no existe.
      */
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findByUsername(username)
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException(
-                        "Usuario no encontrado: " + username));
+                        "Usuario no encontrado con email: " + email));
     }
 
     /**
