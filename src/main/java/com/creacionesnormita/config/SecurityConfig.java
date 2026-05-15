@@ -91,7 +91,8 @@ public class SecurityConfig {
             "https://localhost:7057",  // Swagger UI (HTTPS)
             "http://localhost:3000",   // Cliente React/Angular/Vue
             "http://localhost:8082",    // La propia API (para auto-referencias)
-            "http://localhost:5173"    //Frontend de Vite/React
+            "http://localhost:5173",    // Frontend de Vite/React
+            "http://localhost:5174"    // Frontend de Vite/React (puerto alternativo)
         ));
         // Métodos HTTP permitidos (GET, POST, etc.)
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
