@@ -32,3 +32,4 @@ build/
 !**/src/test
 ### VS Code ###
 .vscode/
+mvnw.cmd
